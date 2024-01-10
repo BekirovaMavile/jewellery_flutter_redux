@@ -1,24 +1,21 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart' hide Badge;
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jewellry_shop/data/models/jew.dart';
-import 'package:jewellry_shop/states/category/category_provider.dart';
-import 'package:jewellry_shop/states/jew/jew_provider.dart';
 import 'package:jewellry_shop/states/jew_state.dart';
-import 'package:jewellry_shop/states/theme/theme_provider.dart';
+import 'package:jewellry_shop/states/shared_data.dart';
 import 'package:jewellry_shop/ui/extensions/app_extension.dart';
 import 'package:jewellry_shop/ui/widgets/jew_list_view.dart';
 import '../../data/_data.dart';
 import '../../ui_kit/_ui_kit.dart';
-import 'package:provider/provider.dart';
 
 class JewList extends StatelessWidget {
   const JewList({super.key});
+  SharedData get _state => JewState().state;
 
   @override
   Widget build(BuildContext context) {
-    final List<Jew> jewList = context.watch<JewProvider>().state.jewList;
-    final List<Jew> filteredJew = context.watch<CategoryProvider>().state.jews;
     return Scaffold(
       appBar: _appBar(context),
       body: Padding(
@@ -41,7 +38,7 @@ class JewList extends StatelessWidget {
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               _categories(context),
-              JewListView(jews: filteredJew),
+              Observer(builder: (_) => JewListView(jews: _state.jewsByCategory),),
               Padding(
                 padding: const EdgeInsets.only(top: 25, bottom: 5),
                 child: Row(
@@ -61,7 +58,7 @@ class JewList extends StatelessWidget {
                   ],
                 ),
               ),
-              JewListView(jews: jewList, isReversed: true),
+              JewListView(jews: _state.jews, isReversed: true),
             ],
           ),
         ),
@@ -73,7 +70,7 @@ class JewList extends StatelessWidget {
     return AppBar(
       leading: IconButton(
         icon: const FaIcon(FontAwesomeIcons.dice),
-        onPressed: () => context.read<ThemeProvider>().switchTheme(),
+        onPressed: _state.onThemeToggle,
       ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -119,45 +116,35 @@ class JewList extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8.0),
       child: SizedBox(
         height: 40,
-        child: Builder(
-            builder: (context) {
-              final List<JewCategory> categories = context.watch<CategoryProvider>().state.jewCategories;
-              debugPrint('JewList >> Изменение длины списка категории');
-              return ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (_, index) {
-                    return Builder(
-                        builder: (context) {
-                          final category = categories[index];
-                          debugPrint('JewList >> Перерисовка категории ${category.type}');
-                          return GestureDetector(
-                            onTap: () =>
-                              context
-                                  .read<CategoryProvider>().onCategoryTab(category),
-                            child: Container(
-                              width: 100,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: category.isSelected ? LightThemeColor.purple : Colors.transparent,
-                                borderRadius: const BorderRadius.all(
-                                  Radius.circular(15),
-                                ),
-                              ),
-                              child: Text(
-                                category.type.name.toCapital,
-                                style: Theme.of(context).textTheme.headlineMedium,
-                              ),
-                            ),
-                          );
-                        }
-                    );
-                  },
-                  separatorBuilder: (_, __) => Container(
-                    width: 15,
+        child: Observer(builder: (_) => ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (_, index) {
+              final categories = _state.categories;
+              final category = categories[index];
+              return GestureDetector(
+                onTap: () {
+                  _state.onCategoryTap(category);
+                },
+                child: Container(
+                  width: 100,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: category.isSelected ? LightThemeColor.purple : Colors.transparent,
+                    borderRadius: const BorderRadius.all(
+                      Radius.circular(15),
+                    ),
                   ),
-                  itemCount: categories.length);
-            }
-        ),
+                  child: Text(
+                    category.type.name.toCapital,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => Container(
+              width: 15,
+            ),
+            itemCount: _state.categories.length)),
       ),
     );
   }

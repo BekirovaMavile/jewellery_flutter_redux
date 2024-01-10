@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jewellry_shop/states/jew_state.dart';
+import 'package:jewellry_shop/states/shared_data.dart';
 
 import '../../data/_data.dart';
 import '../../ui_kit/_ui_kit.dart';
@@ -9,6 +11,7 @@ class JewListView extends StatelessWidget {
 
   final List<Jew> jews;
   final bool isReversed;
+  SharedData get _state => JewState().state;
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +24,10 @@ class JewListView extends StatelessWidget {
           itemBuilder: (_, index) {
             Jew jew = isReversed ? jews.reversed.toList()[index] : jews[index];
             return GestureDetector(
-              onTap: () {
+              onTap: () async {
                 print('Клик на карточку');
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => JewDetail(jew: jew)));
+                await _state.setSelectedSticker(jew);
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => JewDetail()));
               },
               child: Container(
                 width: 160,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:jewellry_shop/states/category/category_provider.dart';
-import 'package:jewellry_shop/states/jew/jew_provider.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:jewellry_shop/states/jew_state.dart';
-import 'package:jewellry_shop/states/theme/theme_provider.dart';
+import 'package:jewellry_shop/states/shared_data.dart';
 import 'package:provider/provider.dart';
 import 'package:jewellry_shop/ui/_ui.dart';
 import 'package:jewellry_shop/ui/screens/home_screen.dart';
@@ -14,28 +13,15 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  SharedData get _state => JewState().state;
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<CategoryProvider>(
-          create: (context) => CategoryProvider(),
-        ),
-        ChangeNotifierProvider<JewProvider>(
-          create: (context) => JewProvider(),
-        ),
-        ChangeNotifierProvider<ThemeProvider>(
-          create: (context) => ThemeProvider(),
-        ),
-      ],
-      child: Consumer<ThemeProvider>(
-        builder: (_, themeProvider, __) => MaterialApp(
-          title: 'Jewellery Shop',
-          home: const HomeScreen(),
-          theme: themeProvider.state.theme,
-        ),
-      ),
+    return Observer(builder: (_) => MaterialApp(
+      title: 'Sunny Stickers',
+      theme: _state.isLight ? AppTheme.lightTheme : AppTheme.darkTheme,
+      home: const HomeScreen(),
+    ),
     );
   }
 }
