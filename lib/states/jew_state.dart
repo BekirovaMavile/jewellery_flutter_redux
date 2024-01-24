@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:jewellry_shop/states/shared_data.dart';
 import '../data/_data.dart';
 import '../ui/_ui.dart';
 import 'package:jewellry_shop/data/models/jew.dart';
@@ -8,7 +7,6 @@ class JewState {
   JewState._();
   static final _instance = JewState._();
   factory JewState() => _instance;
-  late final SharedData state = SharedData();
 
   // GlobalKey<CartScreenState> cartKey = GlobalKey();
   // GlobalKey<FavoriteScreenState> favoriteKey =

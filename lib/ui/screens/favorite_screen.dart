@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:jewellry_shop/data/_data.dart';
 import 'package:jewellry_shop/states/jew_state.dart';
-import 'package:jewellry_shop/states/shared_data.dart';
 import 'package:jewellry_shop/ui/widgets/empty_wrapper.dart';
 import 'package:jewellry_shop/ui_kit/_ui_kit.dart';
 
 class FavoriteScreen extends StatelessWidget {
   FavoriteScreen({super.key});
-  SharedData get _state => JewState().state;
-  List<Jew> get favoriteItems => _state.favorite;
+  List<Jew> favoriteItems = AppData.favoriteItems;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appBar(context),
-      body: Observer(builder: (_) => EmptyWrapper(
+      body: EmptyWrapper(
         type: EmptyWrapperType.favorite,
         title: "Empty favorite",
         isEmpty: favoriteItems.isEmpty,
         child: _favoriteListView(context),
-      ),),
+      ),
     );
   }
 

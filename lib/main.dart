@@ -1,27 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:jewellry_shop/states/jew_state.dart';
-import 'package:jewellry_shop/states/shared_data.dart';
-import 'package:provider/provider.dart';
+import 'package:jewellry_shop/states/shared_redux/shared_reducer.dart';
+import 'package:jewellry_shop/states/shared_redux/shared_state.dart';
 import 'package:jewellry_shop/ui/_ui.dart';
+import 'package:redux/redux.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:jewellry_shop/ui/screens/home_screen.dart';
 import 'package:jewellry_shop/ui_kit/app_theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  final store = Store<SharedState>(
+      sharedReducer,
+      initialState: SharedState.initial()
+  );
+  runApp(MyApp(store: store,));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  SharedData get _state => JewState().state;
-
+  MyApp({super.key, required this.store});
+  final Store<SharedState> store;
   @override
   Widget build(BuildContext context) {
-    return Observer(builder: (_) => MaterialApp(
-      title: 'Sunny Stickers',
-      theme: _state.isLight ? AppTheme.lightTheme : AppTheme.darkTheme,
-      home: const HomeScreen(),
-    ),
+    return StoreProvider<SharedState>(
+      store: store,
+      child: MaterialApp(
+        title: 'Sunny Stickers',
+        theme: AppTheme.darkTheme,
+        home: const HomeScreen(),
+      ),
     );
   }
 }

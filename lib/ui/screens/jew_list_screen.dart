@@ -1,18 +1,22 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart' hide Badge;
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:jewellry_shop/data/models/jew.dart';
 import 'package:jewellry_shop/states/jew_state.dart';
-import 'package:jewellry_shop/states/shared_data.dart';
+import 'package:jewellry_shop/states/shared_redux/shared_action.dart';
+import 'package:jewellry_shop/states/shared_redux/shared_state.dart';
 import 'package:jewellry_shop/ui/extensions/app_extension.dart';
 import 'package:jewellry_shop/ui/widgets/jew_list_view.dart';
 import '../../data/_data.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 import '../../ui_kit/_ui_kit.dart';
 
 class JewList extends StatelessWidget {
   const JewList({super.key});
-  SharedData get _state => JewState().state;
+  List<Jew> get jewsByCategory => JewState().jewsByCategory;
+  List<JewCategory> get categories => JewState().categories;
+  List<Jew> get jews => JewState().jews;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,12 @@ class JewList extends StatelessWidget {
                 style: Theme.of(context).textTheme.displaySmall,
               ),
               _categories(context),
-              Observer(builder: (_) => JewListView(jews: _state.jewsByCategory),),
+              StoreConnector<SharedState, List<Jew>>(
+                converter: (Store<SharedState> store) => store.state.jewsByCategory,
+                builder: (context, jewsByCategory) {
+                  return JewListView(jews: jewsByCategory);
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 25, bottom: 5),
                 child: Row(
@@ -58,7 +67,12 @@ class JewList extends StatelessWidget {
                   ],
                 ),
               ),
-              JewListView(jews: _state.jews, isReversed: true),
+              StoreConnector<SharedState, List<Jew>>(
+                converter: (Store<SharedState> store) => store.state.jewsByCategory,
+                builder: (context, jewsByCategory) {
+                  return JewListView(jews: jews, isReversed: true);
+                },
+              ),
             ],
           ),
         ),
@@ -70,7 +84,7 @@ class JewList extends StatelessWidget {
     return AppBar(
       leading: IconButton(
         icon: const FaIcon(FontAwesomeIcons.dice),
-        onPressed: _state.onThemeToggle,
+        onPressed: () {},
       ),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -116,35 +130,38 @@ class JewList extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8.0),
       child: SizedBox(
         height: 40,
-        child: Observer(builder: (_) => ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (_, index) {
-              final categories = _state.categories;
-              final category = categories[index];
-              return GestureDetector(
-                onTap: () {
-                  _state.onCategoryTap(category);
-                },
-                child: Container(
-                  width: 100,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: category.isSelected ? LightThemeColor.purple : Colors.transparent,
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(15),
-                    ),
+        child: StoreConnector<SharedState, List<JewCategory>>(
+            converter: (Store<SharedState> store) => store.state.categories,
+            builder: (context, categories) {
+              debugPrint('Перерисовываем категории');
+              return ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (_, index) {
+                    final category = categories[index];
+                    return GestureDetector(
+                      onTap: () => StoreProvider.of<SharedState>(context).dispatch(CategoryTapAction(category: category)),
+                      child: Container(
+                        width: 100,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: category.isSelected ? LightThemeColor.purple : Colors.transparent,
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(15),
+                          ),
+                        ),
+                        child: Text(
+                          category.type.name.toCapital,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (_, __) => Container(
+                    width: 15,
                   ),
-                  child: Text(
-                    category.type.name.toCapital,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-              );
-            },
-            separatorBuilder: (_, __) => Container(
-              width: 15,
-            ),
-            itemCount: _state.categories.length)),
+                  itemCount: categories.length);
+            }
+        ),
       ),
     );
   }
